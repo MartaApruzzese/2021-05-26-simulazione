@@ -5,8 +5,11 @@
 package it.polito.tdp.yelp;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
 
+import it.polito.tdp.yelp.model.Business;
 import it.polito.tdp.yelp.model.Model;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -44,15 +47,40 @@ public class FXMLController {
     private ComboBox<Integer> cmbAnno; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbLocale"
-    private ComboBox<?> cmbLocale; // Value injected by FXMLLoader
+    private ComboBox<Business> cmbLocale; // Value injected by FXMLLoader
 
     @FXML // fx:id="txtResult"
     private TextArea txtResult; // Value injected by FXMLLoader
 
     @FXML
     void doCalcolaPercorso(ActionEvent event) {
+    	Business source= cmbLocale.getValue();
+    	double x;
+    	txtResult.clear();
+    	if(source.equals(null)) {
+    		txtResult.setText("Selezionare un locale.");
+    		return;
+    	}
     	
-    }
+    	try {
+    		x= Double.parseDouble(txtX.getText());
+    		if(x<0 && x>1) {
+    			txtResult.setText("Inserire un valore numerico compreso tra 0 e 1.");
+        		return;
+    		}
+    	}catch(NumberFormatException e) {
+    		txtResult.setText("Inserire un valore numerico compreso tra 0 e 1.");
+    		return;
+    	}
+    		
+    	List<Business> percorsoMigliore= new ArrayList<>(model.calcolaPercorso(source, x));
+    	
+    	txtResult.setText("Il percorso migliore è: \n");
+    	for(Business b: percorsoMigliore) {
+    		txtResult.appendText(b.getBusinessName()+ "\n");
+    	}
+    	
+   }
 
     @FXML
     void doCreaGrafo(ActionEvent event) {
@@ -67,11 +95,25 @@ public class FXMLController {
     	txtResult.setText("GRAFO CREATO!\n");
     	txtResult.appendText("Numero di vertici: "+model.getVertici().size());
     	txtResult.appendText("\nNumero di archi: "+model.getNumeroArchi());
+    	
+    	cmbLocale.getItems().clear();
+    	for(Business b: model.getVertici()) {
+    		cmbLocale.getItems().add(b);
+    	}
     }
 
     @FXML
     void doLocaleMigliore(ActionEvent event) {
-
+    	txtResult.clear();
+    	String citta= cmbCitta.getValue();
+    	int anno= cmbAnno.getValue();
+    	if(citta==null || anno==0) {
+    		txtResult.setText("Selezionare una citta e un anno.");
+    		return;
+    	}
+    	model.creaGrafo(anno, citta);
+    	if(!model.getLocaleMigliore().equals(null))
+    			txtResult.setText("Il locale migliore risulta essere: "+model.getLocaleMigliore().getBusinessName());
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete

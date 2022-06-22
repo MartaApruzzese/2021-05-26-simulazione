@@ -14,7 +14,9 @@ public class Model {
 	private Graph<Business, DefaultWeightedEdge> grafo;
 	private List<Business> vertici;
 	private Map<String, Business> idMap;
-	
+	private List<Business> best;
+	private double x;
+	private Business localeMigliore;
 	
 	public Model() {
 		this.dao= new YelpDao();
@@ -63,7 +65,88 @@ public class Model {
 		
 	}
 	
+	public Business getLocaleMigliore() {
+		
+		 localeMigliore=null;
+		 double pesoMigliore=0;
+		 for(Business b: this.vertici) {
+			 double entranti=0;
+			 double uscenti=0;
+			 //Differenza tra entranti meno uscenti max
+			 for(DefaultWeightedEdge e: this.grafo.incomingEdgesOf(b)) {
+				 entranti=entranti + this.grafo.getEdgeWeight(e);
+			 }
+			 for(DefaultWeightedEdge e: this.grafo.outgoingEdgesOf(b)) {
+				 uscenti=uscenti+this.grafo.getEdgeWeight(e);
+			 }
+			if(entranti-uscenti>pesoMigliore) {
+				pesoMigliore=entranti-uscenti;
+				localeMigliore=b;
+			}
+			
+		 }
 	
+		return localeMigliore;
+	}
+	
+	
+	/**
+	 * RICORSIONE: parto da localeDiPartenza, voglio arrivare al locale migliore, con
+				il percorso minore, ma gli archi devono essere maggiori, uguali di x.
+	 */
+	
+	public List<Business> calcolaPercorso(Business b, double x){
+		this.best= new ArrayList<Business>();
+		this.x= x;
+		List<Business> parziale= new ArrayList<>();
+		
+		
+		parziale.add(b);
+		
+		cerca(parziale,1);
+		return best;
+	}
+	
+	
+	private void cerca(List<Business> parziale, int livello) {
+		//Condizioni di uscita
+		if(parziale.get(parziale.size()-1).equals(localeMigliore)) {
+			//è il best?
+			if(best.isEmpty()) {
+				best=new ArrayList<>(parziale);
+			}
+			if(parziale.size()<best.size()) {
+				best= new ArrayList<>(parziale);
+			}
+			return;
+		}
+		
+		//condizioni di ricorsione
+		/*for(Business b: Graphs.neighborListOf(this.grafo,parziale.get(livello-1) )) {
+			if(!parziale.contains(b)) {
+				if(this.grafo.getEdgeWeight(this.grafo.getEdge(parziale.get(livello-1), b))>=x) {
+					parziale.add(b);
+					cerca(parziale, livello+1);
+					parziale.remove(b);
+				}
+			}
+		}*/
+		
+		//Ricordati che sono orientati, ho bisogno solo della lista di quelli uscenti, non entranti.
+		Business source= parziale.get(parziale.size()-1);
+		for(DefaultWeightedEdge e : this.grafo.outgoingEdgesOf(source)) {
+			Business target = this.grafo.getEdgeTarget(e);
+			if(this.grafo.getEdgeWeight(e)>=x && !parziale.contains(target)) {
+				parziale.add(target);
+				cerca(parziale, livello+1);
+				parziale.remove(target);
+			}
+		}
+		
+		
+		
+	}
+
 	public List<Business> getVertici(){
 		return this.vertici;
 	}	
