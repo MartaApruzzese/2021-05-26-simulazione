@@ -13,8 +13,11 @@ public class Business {
 	private double longitude;
 	private String state;
 	private double stars;
+
 	
 	
+	
+
 	public Business(String businessId, String fullAddress, String active, String categories, String city, int reviewCount,
 			String businessName, String neighborhoods, double latitude, double longitude, String state, double stars) {
 		super();
@@ -31,6 +34,7 @@ public class Business {
 		this.state = state;
 		this.stars = stars;
 	}
+	
 	
 	public String getBusinessId() {
 		return businessId;

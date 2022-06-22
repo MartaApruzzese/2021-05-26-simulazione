@@ -5,7 +5,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 import it.polito.tdp.yelp.model.Business;
 import it.polito.tdp.yelp.model.Review;
@@ -111,5 +114,90 @@ public class YelpDao {
 		}
 	}
 	
+	public List<String> getAllCitta(){
+		String sql = "SELECT DISTINCT b.city as citta "
+				+ "FROM business b";
+		List<String> result = new ArrayList<String>();
+		Connection conn = DBConnect.getConnection();
+		try {
+			PreparedStatement st = conn.prepareStatement(sql);
+			ResultSet res = st.executeQuery();
+			while (res.next()) {
+				String citta= res.getString("citta");
+				
+				result.add(citta);
+			}
+			res.close();
+			st.close();
+			conn.close();
+			return result;
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
 	
-}
+	
+	public List<String> getVertici(int anno, String citta){
+		String sql="SELECT DISTINCT b.business_id AS id "
+				+ "FROM business b, reviews r  "
+				+ "WHERE b.business_id=r.business_id "
+				+ "AND YEAR(r.review_date)=? "
+				+ "AND b.city=? ";
+		List<String> result = new ArrayList<String>();
+		Connection conn = DBConnect.getConnection();
+		try {
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setInt(1, anno);
+			st.setString(2, citta);
+			ResultSet res = st.executeQuery();
+			while (res.next()) {
+				
+				String id= res.getString("id");
+				result.add(id);
+			}
+			res.close();
+			st.close();
+			conn.close();
+			return result;
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	public Map<String, Double> getBusinessConMedia(int anno, String citta) {
+		String sql="SELECT b.business_id AS id, AVG(r.stars) AS media "
+				+ "FROM business b, reviews r "
+				+ "WHERE b.business_id=r.business_id "
+				+ "AND YEAR(r.review_date)=? "
+				+ "AND b.city=? "
+				+ "GROUP BY b.business_id ";
+		Map<String, Double> result = new HashMap<String, Double>();
+		Connection conn = DBConnect.getConnection();
+		try {
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setInt(1, anno);
+			st.setString(2, citta);
+			ResultSet res = st.executeQuery();
+			while (res.next()) {
+				
+				String id= res.getString("id");
+				Double media= res.getDouble("media");
+				result.put(id, media);
+			}
+			res.close();
+			st.close();
+			conn.close();
+			return result;
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+		
+	}
+	
+ }
